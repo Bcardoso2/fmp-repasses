@@ -60,7 +60,8 @@ app.get('/', (req, res) => {
     endpoints: {
       veiculos: '/api/veiculos',
       clientes: '/api/clientes',
-      agendamentos: '/api/agendamentos'
+      agendamentos: '/api/agendamentos',
+      cron: '/api/cron'
     }
   });
 });
@@ -68,6 +69,40 @@ app.get('/', (req, res) => {
 // Health check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// ✨ ROTA PARA CRON-JOB
+app.get('/api/cron', async (req, res) => {
+  try {
+    console.log('🕐 Cron-job executado em:', new Date().toISOString());
+    
+    // Aqui você pode adicionar a lógica que deseja executar
+    // Por exemplo:
+    // - Verificar agendamentos vencidos
+    // - Enviar notificações
+    // - Limpar dados antigos
+    // - Fazer backup
+    // - Etc.
+    
+    // Exemplo de lógica:
+    // const resultado = await algumProcessamento();
+    
+    res.status(200).json({ 
+      success: true,
+      message: 'Cron-job executado com sucesso',
+      timestamp: new Date().toISOString(),
+      // data: resultado // Se quiser retornar dados
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro no cron-job:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Erro ao executar cron-job',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Tratamento de erros 404
@@ -90,6 +125,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`📍 http://0.0.0.0:${PORT}`);
   console.log(`🌍 Acesse: http://localhost:${PORT}`);
+  console.log(`⏰ Rota cron: http://localhost:${PORT}/api/cron`);
 });
 
 module.exports = app;
