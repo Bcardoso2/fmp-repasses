@@ -11,21 +11,38 @@ const agendamentoRoutes = require('./routes/agendamentoRoutes');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Configuração de CORS - PERMITE NETLIFY
-const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'https://controle-fmprepasses.netlify.app'
-  ],
+// CORS - PERMITIR NETLIFY (ANTES DE TUDO!)
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permitir requisições sem origin (mobile apps, Postman, etc)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://controle-fmprepasses.netlify.app'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Permitir temporariamente todas as origens para debug
+    }
+  },
   credentials: true,
-  optionsSuccessStatus: 200
-};
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Middlewares
-app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Log de todas as requisições para debug
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
 
 // Servir arquivos estáticos (uploads)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -48,14 +65,15 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check para o Render
+// Health check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // Tratamento de erros 404
 app.use((req, res) => {
-  res.status(404).json({ error: 'Rota não encontrada' });
+  console.log('404 - Rota não encontrada:', req.path);
+  res.status(404).json({ error: 'Rota não encontrada', path: req.path });
 });
 
 // Tratamento de erros gerais
@@ -70,8 +88,8 @@ app.use((err, req, res, next) => {
 // Iniciar servidor
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`📍 http://localhost:${PORT}`);
-  console.log(`📁 Banco de dados: ${process.env.DB_NAME || 'autogiro'}`);
+  console.log(`📍 http://0.0.0.0:${PORT}`);
+  console.log(`🌍 Acesse: http://localhost:${PORT}`);
 });
 
 module.exports = app;
