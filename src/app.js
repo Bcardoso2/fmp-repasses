@@ -11,8 +11,19 @@ const agendamentoRoutes = require('./routes/agendamentoRoutes');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Configuração de CORS - PERMITE NETLIFY
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://controle-fmprepasses.netlify.app'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 // Middlewares
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -37,6 +48,11 @@ app.get('/', (req, res) => {
   });
 });
 
+// Health check para o Render
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
 // Tratamento de erros 404
 app.use((req, res) => {
   res.status(404).json({ error: 'Rota não encontrada' });
@@ -52,10 +68,10 @@ app.use((err, req, res, next) => {
 });
 
 // Iniciar servidor
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`📍 http://localhost:${PORT}`);
-  console.log(`📁 Banco de dados: ${process.env.DB_NAME}`);
+  console.log(`📁 Banco de dados: ${process.env.DB_NAME || 'autogiro'}`);
 });
 
 module.exports = app;
